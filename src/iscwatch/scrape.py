@@ -1,26 +1,17 @@
 import datetime
 import re
 import unicodedata
-from dataclasses import dataclass
 from typing import Final, Iterator
 
 import bs4
 import requests
 from bs4 import Tag
 
+from iscwatch.advisory import Advisory
+
 INTEL_HOME_PAGE: Final = "https://www.intel.com"
 INTEL_PAGE_NOT_FOUND: Final = "https://www.intel.com/content/www/us/en/404.html"
 ISC_HOME_PAGE: Final = "https://www.intel.com/content/www/us/en/security-center/default.html"
-
-
-@dataclass(frozen=True, slots=True)
-class Advisory:
-    """Encapsulate an Intel Product Security Center Advisory"""
-    title: str
-    page_link: str
-    identifier: str
-    update_date: datetime.date
-    release_date: datetime.date
 
 
 def iter_advisories() -> Iterator[Advisory]:
@@ -29,10 +20,10 @@ def iter_advisories() -> Iterator[Advisory]:
         for row_data in iter_advisory_table_row_data(result.text):
             yield Advisory(
                 title=text_from_tag(row_data[0]),
-                page_link=link_from_tag(row_data[0]),
-                identifier=text_from_tag(row_data[1]),
-                update_date=date_from_tag(row_data[2]),
-                release_date=date_from_tag(row_data[3]),
+                link=link_from_tag(row_data[0]),
+                id=text_from_tag(row_data[1]),
+                updated=date_from_tag(row_data[2]),
+                released=date_from_tag(row_data[3]),
             )
 
 
@@ -52,7 +43,7 @@ def date_from_tag(tag: Tag) -> datetime.date:
     """Convert advisory table date format to datetime.date."""
     date_pattern = (
         r"(?P<month>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec))\w*"
-        r" (?P<day>[1-9]|[12][0-9]|3[01]), (?P<year>[0-9]{4})"
+        r"(\s|&nbsp;)(?P<day>0?[1-9]|[12][0-9]|3[01]), (?P<year>[0-9]{4})"
     )
     if m := re.search(date_pattern, tag.text):
         return datetime.datetime.strptime(

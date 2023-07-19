@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iscwatch"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["rhurwitz <roger.a.hurwitz@intel.com>"]
 readme = "README.md"
@@ -22,4 +22,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-iscwatch = "iscwatch.main:app"
+iscwatch = "iscwatch.main:cli"
