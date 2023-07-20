@@ -19,24 +19,29 @@ def main(
     since: Annotated[
         Union[datetime.datetime, None],
         typer.Option(
-            help="Output only those advisories released or updated since specified date"
+            help="Output only those summaries released or updated since specified date."
         ),
     ] = None,
     version: Annotated[
         bool,
-        typer.Option(help="Output the version of the cli application")
-    ] = False
+        typer.Option(help="Output product version and exit.")
+    ] = False,
+    headers: Annotated[
+        bool,
+        typer.Option(help="Include column headers in CSV output.")
+    ] = True
 ):
-    """Output all, unless --since used, Intel Security Advisory summaries in csv format"""
+    """Retrieve Security Advisory summaries from Intel website and output as CSV."""
     if version:
         output_version()
     else:
-        output_advisories(since)
+        output_advisories(since, headers)
 
-def output_advisories(since: datetime.datetime | None):
-    advisory_fieldnames = [field.name for field in fields(Advisory)]
-    writer = csv.DictWriter(sys.stdout, fieldnames=advisory_fieldnames, dialect="excel")
-    writer.writeheader()
+def output_advisories(since: datetime.datetime | None, headers: bool):
+    fieldnames = [field.name for field in fields(Advisory)]
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
+    if headers:
+        writer.writeheader()
     select_advisories = [
         asdict(advisory)
         for advisory in iter_advisories()

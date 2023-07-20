@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "iscwatch"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
-authors = ["rhurwitz <roger.a.hurwitz@intel.com>"]
+authors = ["inspirsmith <rogerhurwitz@inspirsmith.com"]
 readme = "README.md"
 packages = [{include = "iscwatch", from = "src"}]
 
