@@ -1,4 +1,12 @@
+"""Implements the web scraper logic of the library.
+
+Advisories (really Advisor summaries) are listed on the home page of the Intel Security Center
+inside of an HTML table. The code in this module is responsible for retrieving the contents of
+that table then parsing the data to allow iteration over Advisory objects.
+
+"""
 import datetime
+import logging
 import re
 import unicodedata
 from typing import Final, Iterator
@@ -13,6 +21,7 @@ INTEL_HOME_PAGE: Final = "https://www.intel.com"
 INTEL_PAGE_NOT_FOUND: Final = "https://www.intel.com/content/www/us/en/404.html"
 ISC_HOME_PAGE: Final = "https://www.intel.com/content/www/us/en/security-center/default.html"
 
+logger = logging.getLogger(__name__)
 
 def iter_advisories() -> Iterator[Advisory]:
     """Iterate over all Intel Security Center product advisories"""
@@ -28,8 +37,8 @@ def iter_advisories() -> Iterator[Advisory]:
 
 
 def text_from_tag(tag: Tag):
-    """Extract text from tag and remove unicode special characters."""
-    return strip_unicode(tag.text)
+    """Extract text from tag and remove unicode special characters and whitespace."""
+    return strip_unicode(tag.text).strip()
 
 
 def link_from_tag(tag: Tag) -> str:
@@ -40,7 +49,14 @@ def link_from_tag(tag: Tag) -> str:
 
 
 def date_from_tag(tag: Tag) -> datetime.date:
-    """Convert advisory table date format to datetime.date."""
+    """Convert advisory table date format to datetime.datetime.
+    
+    The regular expression pattern in this function was arrived through trial and error.
+    Unfortunately, the way that dates are entered in the HTML table cells is not completely
+    consistent (e.g, "Jan" in some cases, "January" in others).  The &nbsp versus a "real"
+    space was particularly challenging.
+    
+    """
     date_pattern = (
         r"(?P<month>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec))\w*"
         r"(\s|&nbsp;)(?P<day>0?[1-9]|[12][0-9]|3[01]), (?P<year>[0-9]{4})"
@@ -49,6 +65,7 @@ def date_from_tag(tag: Tag) -> datetime.date:
         return datetime.datetime.strptime(
             f"{m['month']} {m['day']}, {m['year']}", "%b %d, %Y"
         ).date()
+    logger.warning(f"Unable to parse date: {tag.text}")
     return datetime.datetime.min.date()
 
 
