@@ -27,23 +27,38 @@ def main(
     since: Annotated[
         datetime.datetime,
         typer.Option(
-            "--since", "-s", help="Exclude summaries before date.", formats=["%Y-%m-%d"]
+            "--since",
+            "-s",
+            help="Only output those advisories updated or released since specified date.",
+            formats=["%Y-%m-%d"],
         ),
     ] = datetime.datetime.min,
     version: Annotated[
         bool,
-        typer.Option("--version", "-v", help="Output product version and exit."),
+        typer.Option("--version", "-v", help="Show iscwatch application version and exit."),
     ] = False,
     no_headers: Annotated[
         bool,
-        typer.Option("--no-headers", "-n", help="Omit column headers from CSV output."),
+        typer.Option(
+            "--no-headers", "-n", help="Omit column headers from CSV advisory summary output."
+        ),
     ] = False,
     last_updated: Annotated[
         bool,
-        typer.Option("--last-updated", "-l", help="Output date when last updated and exit."),
+        typer.Option(
+            "--last-updated",
+            "-l",
+            help="Show date when Intel last updated its security advisories and exit.",
+        ),
     ] = False,
 ):
-    """Disposition command line and vector work to appropriate sub-function."""
+    """Output security advisory summaries from the Intel Security Center website.
+    
+    With no options, iscwatch outputs all Intel security advisory summaries in CSV format with
+    column headers.  Typically, a starting date is specified using the --since option to 
+    constrain the output to a manageable subset.
+    
+    """
     if version:
         print_version()
     elif last_updated:

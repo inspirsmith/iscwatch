@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iscwatch"
-version = "0.3.2"
+version = "0.3.3"
 description = ""
 authors = ["Roger Hurwitz <rogerhurwitz@inspirsmith.com>"]
 readme = "README.md"
