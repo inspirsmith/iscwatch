@@ -1,6 +1,6 @@
 # iscwatch - A Command Line Application For Monitoring Intel Security Center Product Advisories
 
-![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Description
@@ -9,10 +9,9 @@
 
 ## Features
 
-- Fetches summaries of Intel's Security Center Product Advisories.
-- Outputs advisory data in CSV format to stdout.
-- Optionally filters advisories based on date using the --since option.
-- Enables or disables CSV column headers with --headers and --no-headers options, respectively.
+- Fetches some or all summaries of Intel's Security Center Product advisories.
+- Outputs advisory summary data in CSV format with our without headers.
+- Date filtering enables iscwatch to be used to only show latest changes.
 
 ## Installation
 
@@ -30,10 +29,12 @@ Usage: iscwatch [OPTIONS]
 Retrieve Security Advisory summaries from Intel website and output as CSV.
 
 Options
---since                     Output only those summaries released or updated since specified date. [default: None]
---version    --no-version   Output product version and exit. [default: no-version]
---headers    --no-headers   Include column headers in CSV output. [default: headers]
---help                      Show this message and exit.
+--since         -s      [%Y-%m-%d]  Exclude summaries before date.
+                                    [default: 0001-01-01 00:00:00]
+--version       -v                  Output product version and exit.
+--no-headers    -n                  Omit column headers from CSV output.
+--last-updated  -l                  Output date when last updated and exit.
+--help                              Show this message and exit.
 ```
 
 The application will fetch the latest advisories from Intel's Security Center and display the summaries in CSV format to the standard output (stdout). You can redirect the output to a file if needed:
