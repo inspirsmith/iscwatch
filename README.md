@@ -36,7 +36,7 @@ Options
                                     released since specified date.
                                     [default: 0001-01-01 00:00:00]
 --version       -v                  Show iscwatch application version and exit.
---no-headers    -n                  Omit column headers from CSV advisory summary
+--no-header    -n                   Omit column header from CSV advisory summary
                                     output.
 --last-updated  -l                  Show date when Intel last updated its security
                                     advisories and exit.
@@ -48,16 +48,17 @@ Options
 
 The CSV output includes the following columns:
 
-- Advisory Title
-- Advisory Page Link
-- Advisory ID
-- Updated Date
-- Released Date
+- Advisories
+- Advisory Number
+- Updated
+- Release Date
+- Link
 
 ```bash
-> iscwatch --since 2023-07-01 --no-headers
-2023.2 IPU – BIOS Advisory,https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00807.html,INTEL-SA-00807,2023-07-07,2023-05-09
-Intel® NUC Laptop Kit Advisory,https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00712.html,INTEL-SA-00712,2023-07-07,2022-08-09
+> iscwatch --since 2023-08-01 --no-headers
+Intel® RealSenseTM SDK Advisory,INTEL-SA-00946,2023-08-08,2023-08-08,https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00946.html
+Intel® ITS Software Advisory,INTEL-SA-00938,2023-08-08,2023-08-08,https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00938.html
+MAVinci Desktop Software for Intel® Falcon 8+ Advisory,INTEL-SA-00934,2023-08-08,2023-08-08,https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00934.html
 ```
 
 

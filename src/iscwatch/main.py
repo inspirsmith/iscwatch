@@ -1,17 +1,14 @@
-import csv
 import datetime
 import logging
 import logging.config
-import sys
-from dataclasses import asdict, fields
+import re
 from typing import Annotated, Final
 
+import pandas as pd
 import pkg_resources
 import typer
 
-from iscwatch.advisory import Advisory
 from iscwatch.logconfig import logging_config
-from iscwatch.scrape import iter_advisories
 
 logging.config.dictConfig(logging_config)
 
@@ -37,10 +34,10 @@ def main(
         bool,
         typer.Option("--version", "-v", help="Show iscwatch application version and exit."),
     ] = False,
-    no_headers: Annotated[
+    no_header: Annotated[
         bool,
         typer.Option(
-            "--no-headers", "-n", help="Omit column headers from CSV advisory summary output."
+            "--no-header", "-n", help="Omit column header from CSV advisory summary output."
         ),
     ] = False,
     last_updated: Annotated[
@@ -53,32 +50,36 @@ def main(
     ] = False,
 ):
     """Output security advisory summaries from the Intel Security Center website.
-    
+
     With no options, iscwatch outputs all Intel security advisory summaries in CSV format with
-    column headers.  Typically, a starting date is specified using the --since option to 
+    column headers.  Typically, a starting date is specified using the --since option to
     constrain the output to a manageable subset.
-    
+
     """
     if version:
         print_version()
-    elif last_updated:
-        last_updated_advisory = max(iter_advisories(), key=lambda a: a.updated)
-        print(last_updated_advisory.updated)
-    else:  # output advisories
-        selected_advisories = [
-            a for a in iter_advisories() if not since or a.updated >= since.date()
-        ]
-        print_csv_advisories(selected_advisories, no_headers)
+        return
+
+    advisories = advisories_from_html()
+
+    if last_updated:
+        print(advisories["Updated"].max().date())
+        return
+
+    if since:
+        advisories = advisories[advisories["Updated"].between(since, datetime.datetime.now())]
+
+    print(advisories.to_csv(index=False, header=not no_header))
 
 
-def print_csv_advisories(advisories: list[Advisory], no_headers: bool):
-    """Convert advisories into dictionaries and output in CSV format."""
-    fieldnames = [field.name for field in fields(Advisory)]
-    # lineterminator argument required to avoid stdout \n\r behavior on windows
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
-    if not no_headers:
-        writer.writeheader()
-    writer.writerows(asdict(advisory) for advisory in advisories)
+# def print_csv_advisories(advisories: list[Advisory], no_headers: bool):
+#     """Convert advisories into dictionaries and output in CSV format."""
+#     fieldnames = [field.name for field in fields(Advisory)]
+#     # lineterminator argument required to avoid stdout \n\r behavior on windows
+#     writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
+#     if not no_headers:
+#         writer.writeheader()
+#     writer.writerows(asdict(advisory) for advisory in advisories)
 
 
 def print_version():
@@ -88,3 +89,30 @@ def print_version():
         print(f"{distribution.project_name} {distribution.version}")
     except pkg_resources.DistributionNotFound:
         logging.error(f"The package ({PACKAGE_NAME}) is not installed.")
+
+
+def convert_date(date_string: str) -> datetime.datetime:
+    date_pattern = (
+        r"(?P<month>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec))\w*"
+        r"(\s|&nbsp;)(?P<day>0?[1-9]|[12][0-9]|3[01]), (?P<year>[0-9]{4})"
+    )
+    if m := re.search(date_pattern, date_string):
+        return datetime.datetime.strptime(f"{m['month']} {m['day']}, {m['year']}", "%b %d, %Y")
+    return datetime.datetime.min
+
+
+def make_link(advisory_number: str) -> str:
+    base_link = "https://www.intel.com/content/www/us/en/security-center/advisory"
+    return f"{base_link}/{advisory_number.lower()}.html"
+
+
+def advisories_from_html() -> pd.DataFrame:
+    advisories = pd.read_html(
+        io="https://www.intel.com/content/www/us/en/security-center/default.html",
+        converters={"Updated": convert_date, "Release Date": convert_date},  # type: ignore
+    )[0]
+    advisories["Updated"] = pd.to_datetime(advisories["Updated"])
+    advisories["Release Date"] = pd.to_datetime(advisories["Release Date"])
+    advisories["Link"] = advisories["Advisory Number"].apply(make_link)
+
+    return advisories
