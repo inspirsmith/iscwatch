@@ -74,7 +74,8 @@ def main(
 def print_csv_advisories(advisories: list[Advisory], no_headers: bool):
     """Convert advisories into dictionaries and output in CSV format."""
     fieldnames = [field.name for field in fields(Advisory)]
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
+    # lineterminator argument required to avoid stdout \n\r behavior on windows
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
     if not no_headers:
         writer.writeheader()
     writer.writerows(asdict(advisory) for advisory in advisories)
